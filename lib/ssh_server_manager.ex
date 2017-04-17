@@ -16,13 +16,23 @@ defmodule SSHServerManager do
   ]
 
   def start(options) do
+    with {:ok, state} <- get_state(options),
+    do: GenServer.start(__MODULE__, state)
+  end
+
+  def start_link(options) do
+    with {:ok, state} <- get_state(options),
+    do: GenServer.start_link(__MODULE__, state)
+  end
+
+  defp get_state(options) do
     with {:ok, key_authenticator, key_authenticator_config} <- get_key_authenticator(options[:key_authenticator]),
          {:ok, port} <- get_port(options[:port]),
          {:ok, keys} <- get_keys(options[:keys]),
          {:ok, id_string} <- get_id_string(options[:id_string]),
          {:ok, single_user} <- get_single_user(options[:single_user]),
          {:ok, shell} <- get_shell(options[:shell]) do
-      GenServer.start(__MODULE__, state(
+      {:ok, state(
         port: port,
         keys: keys,
         key_authenticator: key_authenticator,
@@ -30,7 +40,7 @@ defmodule SSHServerManager do
         single_user: single_user,
         id_string: id_string,
         shell: shell
-      ))
+      )}
     end
   end
 
